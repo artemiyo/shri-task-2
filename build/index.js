@@ -85,7 +85,6 @@ const getValues = (commitEntities, sprints, sprintId) => {
  * @param type - тип entity
  */
 const getUsers = (preparedEntities, type) => {
-	console.log(preparedEntities)
 	const users = preparedEntities[type].reduce((acc, cur) => {
 		const usersObject = { ...acc, [cur.author]: [] };
 		return usersObject

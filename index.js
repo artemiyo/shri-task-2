@@ -1,5 +1,3 @@
-import entities from './examples/input.json'
-
 const declOfNum = (n, titles) => {
 	return titles[(n % 10 === 1 && n % 100 !== 11) ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2]
 }
@@ -87,7 +85,6 @@ const getValues = (commitEntities, sprints, sprintId) => {
  * @param type - тип entity
  */
 const getUsers = (preparedEntities, type) => {
-	console.log(preparedEntities)
 	const users = preparedEntities[type].reduce((acc, cur) => {
 		const usersObject = { ...acc, [cur.author]: [] };
 		return usersObject
@@ -277,5 +274,4 @@ function prepareData(entities, { sprintId }) {
 	]
 }
 
-console.log(prepareData(entities, { sprintId: 996 }))
-// module.exports = { prepareData }
+module.exports = { prepareData }
