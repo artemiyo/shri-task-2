@@ -1,7 +1,11 @@
 import entities from './examples/input.json';
 import { declOfNum } from './helpers'
 
-// Подготовка и фильтрация данных в зависимости от спринта
+/** 
+ * @function Получение обработанных данных и их фильтрация по номеру спринта
+ * @param entities - список всех данных
+ * @param currentSprintDuration - длительность спринта
+ */
 const getPreparedEntities = (entities, currentSprintDuration) => {
 	const [start, finish] = currentSprintDuration;
 	const preparedEntities = {
@@ -17,15 +21,12 @@ const getPreparedEntities = (entities, currentSprintDuration) => {
 	const commitEntities = entities.filter(entity => entity.type === "Commit")
 
 	const filteredEntitiesBySprint = entities.filter((entity) => {
-
 		if (entity.type === "Issue" || entity.type === "Comment") {
 			return entity.createdAt >= start && entity.createdAt <= finish
 		}
-
 		if (entity.type === "Commit") {
 			return entity.timestamp >= start && entity.timestamp <= finish
 		}
-
 		return entity
 	})
 
@@ -36,7 +37,7 @@ const getPreparedEntities = (entities, currentSprintDuration) => {
 	return { commitEntities, preparedEntities }
 }
 
-// Получение количества коммитов в каждом спринте
+
 /** 
  * @function Получение количества коммитов в каждом спринте
  * @param commitEntities - список всех коммитов
@@ -53,23 +54,37 @@ const getValues = (commitEntities, sprints, sprintId) => {
 		sprintsObject[key].push(commitsCount)
 	}
 
-	return sprints
-		.map(sprint => {
-			const sprintObj = {
-				title: sprint.id.toString(),
-				hint: sprint.name,
-				value: sprintsObject[sprint.id][0].length
-			}
+	const setActiveSprint = sprint => {
+		const sprintObj = {
+			title: sprint.id.toString(),
+			hint: sprint.name,
+			value: sprintsObject[sprint.id][0].length
+		}
 
-			if (sprint.id === sprintId) {
-				sprintObj.active = true
-			}
-			
-			return sprintObj
-		}).sort((a, b) => a.title.localeCompare(b.title, "ru-u-kn-true"))
+		if (sprint.id === sprintId) {
+			sprintObj.active = true
+		}
+
+		return sprintObj
+	}
+
+	return sprints.map(setActiveSprint).sort((a, b) => a.title.localeCompare(b.title, "ru-u-kn-true"))
 }
 
 
+const sortValues = (a, b) => {
+	if (a.valueText === b.valueText) {
+		return a.name.localeCompare(b.name)
+	} else {
+		return b.valueText.localeCompare(a.valueText, "ru-u-kn-true")
+	}
+}
+
+/** 
+ * @function Получение данных "users" для alias "vote" и "leaders"
+ * @param preparedEntities - объект с entity
+ * @param type - тип entity
+ */
 const getUsers = (preparedEntities, type) => {
 	const users = preparedEntities[type].reduce((acc, cur) => {
 		const usersObject = { ...acc, [cur.author]: [] };
@@ -94,29 +109,21 @@ const getUsers = (preparedEntities, type) => {
 			avatar: user.avatar,
 			valueText: type === "Commit" ? commitValueText : voteValueText
 		}
-	}).sort((a, b) => {
-		if (a.valueText === b.valueText) {
-			return a.name.localeCompare(b.name)
-		} else {
-			return b.valueText.localeCompare(a.valueText, "ru-u-kn-true")
-		}
-	})
+	}).sort(sortValues)
 }
 
 const getSummariesWithSumValues = (preparedEntities) => {
 	const commitSummaries = preparedEntities["Commit"].map(({ summaries }) => summaries).flat();
 	const summaries = preparedEntities["Summary"].filter(({ id }) => commitSummaries.includes(id));
-	const sumValues = summaries.reduce((acc, cur) => ({ ...acc, [cur.id]: { sum: cur.added + cur.removed } }), {})
+	const sumValues = summaries.reduce((acc, { id, added, removed }) => ({ ...acc, [id]: { sum: added + removed } }), {})
 
 	const summariesWithSumValues = preparedEntities["Commit"].map(commit => ({
 		...commit,
-		summariesValue: commit.summaries.map(summary => ({ ...sumValues[summary] })).reduce((acc, cur) => acc + cur.sum, 0)
+		summariesValue: commit.summaries.map(summary => ({ ...sumValues[summary] })).reduce((acc, { sum }) => acc + sum, 0)
 	}));
 
 	return summariesWithSumValues
 }
-
-
 
 
 const getFilteredSummaries = (summaries) => {
@@ -144,10 +151,10 @@ const getActivity = (commits) => {
 		"sat": {}
 	}
 
-	const commitsWithDay = commits.map(el => ({
-		...el,
-		day: new Intl.DateTimeFormat("en-Us", { weekday: "short" }).format(new Date(el.timestamp)).toLocaleLowerCase(),
-		hour: new Date(el.timestamp).getHours()
+	const commitsWithDay = commits.map(commit => ({
+		...commit,
+		day: new Intl.DateTimeFormat("en-Us", { weekday: "short" }).format(new Date(commit.timestamp)).toLocaleLowerCase(),
+		hour: new Date(commit.timestamp).getHours()
 	}))
 
 
@@ -185,6 +192,9 @@ function prepareData(entities, { sprintId }) {
 	const getDifference = (index) => currentCategories[index] - prevCategories[index];
 	const getCommitsWord = (value) => declOfNum(value, ['коммит', "коммита", "коммитов"]);
 
+	const getCategoryValueText = (index) => `${currentCategories[index]} ${getCommitsWord(currentCategories[index])}`;
+	const getCategoryDiffText = (index) => `${getDifference(index) > 0 ? "+" : ""}${getDifference(index)} ${getCommitsWord(Math.abs(currentCategories[index]))}`
+
 	return [
 		{
 			alias: "leaders",
@@ -221,26 +231,10 @@ function prepareData(entities, { sprintId }) {
 				totalText: `${preparedEntities["Commit"].length} коммита`,
 				differenceText: `${difference > 0 ? "+" : "-"}${Math.abs(difference)} с прошлого спринта`,
 				categories: [
-					{
-						title: "> 1001 строки",
-						valueText: `${currentCategories[0]} ${getCommitsWord(currentCategories[0])}`,
-						differenceText: `${getDifference(0) > 0 ? "+" : ""}${getDifference(0)} ${getCommitsWord(Math.abs(currentCategories[0]))}`
-					},
-					{
-						title: "501 — 1000 строк",
-						valueText: `${currentCategories[1]} ${getCommitsWord(currentCategories[1])}`,
-						differenceText: `${getDifference(1) > 0 ? "+" : ""}${getDifference(1)} ${getCommitsWord(Math.abs(currentCategories[1]))}`
-					},
-					{
-						title: "101 — 500 строк",
-						valueText: `${currentCategories[2]} ${getCommitsWord(currentCategories[2])}`,
-						differenceText: `${getDifference(2) > 0 ? "+" : ""}${getDifference(2)} ${getCommitsWord(Math.abs(currentCategories[2]))}`
-					},
-					{
-						title: "1 — 100 строк",
-						valueText: `${currentCategories[3]} ${getCommitsWord(currentCategories[3])}`,
-						differenceText: `${getDifference(3) > 0 ? "+" : ""}${getDifference(3)} ${getCommitsWord(Math.abs(currentCategories[3]))}`
-					}
+					{ title: "> 1001 строки", valueText: getCategoryValueText(0), differenceText: getCategoryDiffText(0) },
+					{ title: "501 — 1000 строк", valueText: getCategoryValueText(1), differenceText: getCategoryDiffText(1) },
+					{ title: "101 — 500 строк", valueText: getCategoryValueText(2), differenceText: getCategoryDiffText(2) },
+					{ title: "1 — 100 строк", valueText: getCategoryValueText(3), differenceText: getCategoryDiffText(3) }
 				]
 			}
 		},
@@ -256,4 +250,4 @@ function prepareData(entities, { sprintId }) {
 }
 
 console.log(prepareData(entities, { sprintId: 977 }))
-module.exports = prepareData(entities, { sprintId: 977 })
+// module.exports = prepareData(entities, { sprintId: 977 })
