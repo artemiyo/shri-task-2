@@ -85,6 +85,7 @@ const getValues = (commitEntities, sprints, sprintId) => {
  * @param type - тип entity
  */
 const getUsers = (preparedEntities, type) => {
+	console.log(preparedEntities)
 	const users = preparedEntities[type].reduce((acc, cur) => {
 		const usersObject = { ...acc, [cur.author]: [] };
 		return usersObject
@@ -98,7 +99,7 @@ const getUsers = (preparedEntities, type) => {
 	})
 
 	return preparedEntities["User"].map(user => {
-		const word = declOfNum(users[user.id].flat().length, ["голос", "голоса", "голосов"])
+		const word = declOfNum(users[user.id]?.flat().length, ["голос", "голоса", "голосов"])
 		const commitValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].length}` : "0";
 		const voteValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].flat().length} ${word}` : "0 голосов"
 

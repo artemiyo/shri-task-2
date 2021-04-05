@@ -1,3 +1,5 @@
+import entities from './examples/input.json'
+
 const declOfNum = (n, titles) => {
 	return titles[(n % 10 === 1 && n % 100 !== 11) ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2]
 }
@@ -85,6 +87,7 @@ const getValues = (commitEntities, sprints, sprintId) => {
  * @param type - тип entity
  */
 const getUsers = (preparedEntities, type) => {
+	console.log(preparedEntities)
 	const users = preparedEntities[type].reduce((acc, cur) => {
 		const usersObject = { ...acc, [cur.author]: [] };
 		return usersObject
@@ -98,7 +101,7 @@ const getUsers = (preparedEntities, type) => {
 	})
 
 	return preparedEntities["User"].map(user => {
-		const word = declOfNum(users[user.id].flat().length, ["голос", "голоса", "голосов"])
+		const word = declOfNum(users[user.id]?.flat().length, ["голос", "голоса", "голосов"])
 		const commitValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].length}` : "0";
 		const voteValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].flat().length} ${word}` : "0 голосов"
 
@@ -274,4 +277,5 @@ function prepareData(entities, { sprintId }) {
 	]
 }
 
-module.exports = { prepareData }
+console.log(prepareData(entities, { sprintId: 996 }))
+// module.exports = { prepareData }
