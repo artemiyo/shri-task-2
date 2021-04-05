@@ -266,7 +266,7 @@ function prepareData(entities, { sprintId }) {
 		{
 			alias: "activity",
 			data: {
-				title: "Коммиты, 1 неделя",
+				title: "Коммиты",
 				subtitle: currentSprint.name,
 				data: activity
 			}
