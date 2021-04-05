@@ -1,4 +1,5 @@
 import entities from './examples/input.json';
+import { declOfNum } from './helpers'
 
 // Подготовка и фильтрация данных в зависимости от спринта
 const getPreparedEntities = (entities, currentSprintDuration) => {
@@ -63,29 +64,29 @@ const getValues = (commitEntities, sprints, sprintId) => {
 			if (sprint.id === sprintId) {
 				sprintObj.active = true
 			}
-
+			
 			return sprintObj
-
 		}).sort((a, b) => a.title.localeCompare(b.title, "ru-u-kn-true"))
 }
 
 
 const getUsers = (preparedEntities, type) => {
-	const usersObj = preparedEntities[type].reduce((acc, cur) => {
-		const obj = { ...acc, [cur.author]: [] };
-		return obj
+	const users = preparedEntities[type].reduce((acc, cur) => {
+		const usersObject = { ...acc, [cur.author]: [] };
+		return usersObject
 	}, {});
 
 	preparedEntities[type].forEach((entity) => {
 		const entityData = type === "Commit" ? entity.summaries : entity.likes;
 		if (Array.isArray(entityData) && entityData.length) {
-			usersObj[entity.author].push(entityData);
+			users[entity.author].push(entityData);
 		}
 	})
 
 	return preparedEntities["User"].map(user => {
-		const commitValueText = Array.isArray(usersObj[user.id]) && usersObj[user.id].length ? `${usersObj[user.id].length}` : "0";
-		const voteValueText = Array.isArray(usersObj[user.id]) && usersObj[user.id].length ? `${usersObj[user.id].flat().length} голосов` : "0 голосов"
+		const word = declOfNum(users[user.id].flat().length, ["голос", "голоса", "голосов"])
+		const commitValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].length}` : "0";
+		const voteValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].flat().length} ${word}` : "0 голосов"
 
 		return {
 			id: user.id,
@@ -102,30 +103,87 @@ const getUsers = (preparedEntities, type) => {
 	})
 }
 
-function prepareData(entities, { sprintId }) {
-	const currentSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId);
-	const previousSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId - 1)
-
-	let currentSprintDuration = [currentSprint.startAt, currentSprint.finishAt];
-	const { commitEntities, preparedEntities } = getPreparedEntities(entities, currentSprintDuration);
-	const values = getValues(commitEntities, preparedEntities["Sprint"], sprintId);
-
+const getSummariesWithSumValues = (preparedEntities) => {
 	const commitSummaries = preparedEntities["Commit"].map(({ summaries }) => summaries).flat();
 	const summaries = preparedEntities["Summary"].filter(({ id }) => commitSummaries.includes(id));
+	const sumValues = summaries.reduce((acc, cur) => ({ ...acc, [cur.id]: { sum: cur.added + cur.removed } }), {})
 
-	console.log(preparedEntities["Commit"])
-	console.log(summaries)
+	const summariesWithSumValues = preparedEntities["Commit"].map(commit => ({
+		...commit,
+		summariesValue: commit.summaries.map(summary => ({ ...sumValues[summary] })).reduce((acc, cur) => acc + cur.sum, 0)
+	}));
 
-	// console.log(preparedEntities["Commit"].map(commit => {
-	// 	return {
-	// 		...commit,
-	// 		summaries: commit.summaries.map(summary => {
-	// 			return {
+	return summariesWithSumValues
+}
 
-	// 			}
-	// 		})
-	// 	}
-	// }))
+
+
+
+const getFilteredSummaries = (summaries) => {
+	const filterOne = summaries.filter(a => a.summariesValue >= 1001);
+	const filterTwo = summaries.filter(a => a.summariesValue >= 501 && a.summariesValue <= 1000);
+	const filterThree = summaries.filter(a => a.summariesValue >= 101 && a.summariesValue <= 500);
+	const filterFour = summaries.filter(a => a.summariesValue >= 1 && a.summariesValue <= 100);
+
+	return [
+		filterOne.length,
+		filterTwo.length,
+		filterThree.length,
+		filterFour.length
+	]
+}
+
+const getActivity = (commits) => {
+	const days = {
+		"sun": {},
+		"mon": {},
+		"tue": {},
+		"wed": {},
+		"thu": {},
+		"fri": {},
+		"sat": {}
+	}
+
+	const commitsWithDay = commits.map(el => ({
+		...el,
+		day: new Intl.DateTimeFormat("en-Us", { weekday: "short" }).format(new Date(el.timestamp)).toLocaleLowerCase(),
+		hour: new Date(el.timestamp).getHours()
+	}))
+
+
+	for (const [key, value] of Object.entries(days)) {
+		const filteredArray = commitsWithDay.filter(commit => commit.day === key).map(commit => commit.hour)
+		filteredArray.forEach((el) => {
+			days[key][el] = (days[key][el] || 0) + 1
+		})
+		days[key] = new Array(24).fill(0).map((el, index) => value[index] ? el = value[index] : el)
+	}
+
+	return days
+}
+
+function prepareData(entities, { sprintId }) {
+	const currentSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId);
+	const previousSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId - 1);
+	let currentSprintDuration = [currentSprint.startAt, currentSprint.finishAt];
+	let previousSprintDuration = [previousSprint.startAt, previousSprint.finishAt];
+
+	const { commitEntities, preparedEntities } = getPreparedEntities(entities, currentSprintDuration);
+	const prevPreparedEntities = getPreparedEntities(entities, previousSprintDuration);
+
+	const values = getValues(commitEntities, preparedEntities["Sprint"], sprintId);
+	const activity = getActivity(preparedEntities["Commit"])
+
+	const currentSummaries = getSummariesWithSumValues(preparedEntities)
+	const prevSummaries = getSummariesWithSumValues(prevPreparedEntities.preparedEntities);
+
+	const difference = currentSummaries.length - prevSummaries.length;
+
+	const currentCategories = getFilteredSummaries(currentSummaries);
+	const prevCategories = getFilteredSummaries(prevSummaries);
+
+	const getDifference = (index) => currentCategories[index] - prevCategories[index];
+	const getCommitsWord = (value) => declOfNum(value, ['коммит', "коммита", "коммитов"]);
 
 	return [
 		{
@@ -161,11 +219,41 @@ function prepareData(entities, { sprintId }) {
 				title: "Размер коммитов",
 				subtitle: currentSprint.name,
 				totalText: `${preparedEntities["Commit"].length} коммита`,
-				differenceText: "",
-				categories: []
+				differenceText: `${difference > 0 ? "+" : "-"}${Math.abs(difference)} с прошлого спринта`,
+				categories: [
+					{
+						title: "> 1001 строки",
+						valueText: `${currentCategories[0]} ${getCommitsWord(currentCategories[0])}`,
+						differenceText: `${getDifference(0) > 0 ? "+" : ""}${getDifference(0)} ${getCommitsWord(Math.abs(currentCategories[0]))}`
+					},
+					{
+						title: "501 — 1000 строк",
+						valueText: `${currentCategories[1]} ${getCommitsWord(currentCategories[1])}`,
+						differenceText: `${getDifference(1) > 0 ? "+" : ""}${getDifference(1)} ${getCommitsWord(Math.abs(currentCategories[1]))}`
+					},
+					{
+						title: "101 — 500 строк",
+						valueText: `${currentCategories[2]} ${getCommitsWord(currentCategories[2])}`,
+						differenceText: `${getDifference(2) > 0 ? "+" : ""}${getDifference(2)} ${getCommitsWord(Math.abs(currentCategories[2]))}`
+					},
+					{
+						title: "1 — 100 строк",
+						valueText: `${currentCategories[3]} ${getCommitsWord(currentCategories[3])}`,
+						differenceText: `${getDifference(3) > 0 ? "+" : ""}${getDifference(3)} ${getCommitsWord(Math.abs(currentCategories[3]))}`
+					}
+				]
+			}
+		},
+		{
+			alias: "activity",
+			data: {
+				title: "Коммиты, 1 неделя",
+				subtitle: currentSprint.name,
+				data: activity
 			}
 		}
 	]
 }
 
 console.log(prepareData(entities, { sprintId: 977 }))
+module.exports = prepareData(entities, { sprintId: 977 })
