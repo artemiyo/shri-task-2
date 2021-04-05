@@ -1,1 +1,277 @@
-(()=>{var t={497:t=>{function e(t,e){var r=Object.keys(t);if(Object.getOwnPropertySymbols){var n=Object.getOwnPropertySymbols(t);e&&(n=n.filter((function(e){return Object.getOwnPropertyDescriptor(t,e).enumerable}))),r.push.apply(r,n)}return r}function r(t){for(var r=1;r<arguments.length;r++){var i=null!=arguments[r]?arguments[r]:{};r%2?e(Object(i),!0).forEach((function(e){n(t,e,i[e])})):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(i)):e(Object(i)).forEach((function(e){Object.defineProperty(t,e,Object.getOwnPropertyDescriptor(i,e))}))}return t}function n(t,e,r){return e in t?Object.defineProperty(t,e,{value:r,enumerable:!0,configurable:!0,writable:!0}):t[e]=r,t}function i(t,e){return function(t){if(Array.isArray(t))return t}(t)||function(t,e){if("undefined"!=typeof Symbol&&Symbol.iterator in Object(t)){var r=[],n=!0,i=!1,a=void 0;try{for(var u,o=t[Symbol.iterator]();!(n=(u=o.next()).done)&&(r.push(u.value),!e||r.length!==e);n=!0);}catch(t){i=!0,a=t}finally{try{n||null==o.return||o.return()}finally{if(i)throw a}}return r}}(t,e)||a(t,e)||function(){throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}()}function a(t,e){if(t){if("string"==typeof t)return u(t,e);var r=Object.prototype.toString.call(t).slice(8,-1);return"Object"===r&&t.constructor&&(r=t.constructor.name),"Map"===r||"Set"===r?Array.from(t):"Arguments"===r||/^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(r)?u(t,e):void 0}}function u(t,e){(null==e||e>t.length)&&(e=t.length);for(var r=0,n=new Array(e);r<e;r++)n[r]=t[r];return n}var o=function(t,e){return e[t%10==1&&t%100!=11?0:t%10>=2&&t%10<=4&&(t%100<10||t%100>=20)?1:2]},c=function(t,e){return t.valueText===e.valueText?t.name.localeCompare(e.name):e.valueText.localeCompare(t.valueText,"ru-u-kn-true")},f=function(t,e){for(var r=i(e,2),n=r[0],o=r[1],c={Comment:[],Commit:[],Issue:[],Project:[],Sprint:[],Summary:[],User:[]},f=t.filter((function(t){return"Commit"===t.type})),l=t.filter((function(t){return"Issue"===t.type||"Comment"===t.type?t.createdAt>=n&&t.createdAt<=o:"Commit"===t.type?t.timestamp>=n&&t.timestamp<=o:t})),m=function(){var t,e=i(d[s],2),r=e[0],n=e[1];n.push.apply(n,function(t){if(Array.isArray(t))return u(t)}(t=l.filter((function(t){return t.type===r})))||function(t){if("undefined"!=typeof Symbol&&Symbol.iterator in Object(t))return Array.from(t)}(t)||a(t)||function(){throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.")}())},s=0,d=Object.entries(c);s<d.length;s++)m();return{commitEntities:f,preparedEntities:c}},l=function(t,e){var i=t[e].reduce((function(t,e){return r(r({},t),{},n({},e.author,[]))}),{});return t[e].forEach((function(t){var r="Commit"===e?t.summaries:t.likes;Array.isArray(r)&&r.length&&i[t.author].push(r)})),t.User.map((function(t){var r=o(i[t.id].flat().length,["голос","голоса","голосов"]),n=Array.isArray(i[t.id])&&i[t.id].length?"".concat(i[t.id].length):"0",a=Array.isArray(i[t.id])&&i[t.id].length?"".concat(i[t.id].flat().length," ").concat(r):"0 голосов";return{id:t.id,name:t.name,avatar:t.avatar,valueText:"Commit"===e?n:a}})).sort(c)},m=function(t){var e=t.Commit.map((function(t){return t.summaries})).flat(),i=t.Summary.filter((function(t){var r=t.id;return e.includes(r)})).reduce((function(t,e){var i=e.id,a=e.added,u=e.removed;return r(r({},t),{},n({},i,{sum:a+u}))}),{});return t.Commit.map((function(t){return r(r({},t),{},{summariesValue:t.summaries.map((function(t){return r({},i[t])})).reduce((function(t,e){return t+e.sum}),0)})}))},s=function(t){var e=t.filter((function(t){return t.summariesValue>=1001})),r=t.filter((function(t){return t.summariesValue>=501&&t.summariesValue<=1e3})),n=t.filter((function(t){return t.summariesValue>=101&&t.summariesValue<=500})),i=t.filter((function(t){return t.summariesValue>=1&&t.summariesValue<=100}));return[e.length,r.length,n.length,i.length]};t.exports={prepareData:function(t,e){var a=e.sprintId,u=t.filter((function(t){return"Sprint"===t.type})).find((function(t){return t.id===a})),c=t.filter((function(t){return"Sprint"===t.type})).find((function(t){return t.id===a-1})),d=[u.startAt,u.finishAt],p=[c.startAt,c.finishAt],y=f(t,d),v=y.commitEntities,h=y.preparedEntities,b=f(t,p),g=function(t,e,a){for(var u=e.reduce((function(t,e){return r(r({},t),{},n({},e.id,[]))}),{}),o=e.reduce((function(t,e){return r(r({},t),{},n({},e.id,[e.startAt,e.finishAt]))}),{}),c=function(){var e=i(l[f],2),r=e[0],n=e[1],a=t.filter((function(t){return t.timestamp>=n[0]&&t.timestamp<=n[1]}));u[r].push(a)},f=0,l=Object.entries(o);f<l.length;f++)c();return e.map((function(t){var e={title:t.id.toString(),hint:t.name,value:u[t.id][0].length};return t.id===a&&(e.active=!0),e})).sort((function(t,e){return t.title.localeCompare(e.title,"ru-u-kn-true")}))}(v,h.Sprint,a),O=function(t){for(var e={sun:{},mon:{},tue:{},wed:{},thu:{},fri:{},sat:{}},n=t.map((function(t){return r(r({},t),{},{day:new Intl.DateTimeFormat("en-Us",{weekday:"short"}).format(new Date(t.timestamp)).toLocaleLowerCase(),hour:new Date(t.timestamp).getHours()})})),a=function(){var t=i(o[u],2),r=t[0],a=t[1];n.filter((function(t){return t.day===r})).map((function(t){return t.hour})).forEach((function(t){e[r][t]=(e[r][t]||0)+1})),e[r]=new Array(24).fill(0).map((function(t,e){return a[e]?t=a[e]:t}))},u=0,o=Object.entries(e);u<o.length;u++)a();return e}(h.Commit),j=function(t,e){var r=m(t),n=m(e),i=r.length-n.length,a=s(r),u=s(n),c=function(t){return a[t]-u[t]},f=function(t){return o(t,["коммит","коммита","коммитов"])},l=function(t){return"".concat(a[t]," ").concat(f(a[t]))},d=function(t){return"".concat(c(t)>0?"+":"").concat(c(t)," ").concat(f(Math.abs(a[t])))};return{diagramCategoriesData:[{title:"> 1001 строки",valueText:l(0),differenceText:d(0)},{title:"501 — 1000 строк",valueText:l(1),differenceText:d(1)},{title:"101 — 500 строк",valueText:l(2),differenceText:d(2)},{title:"1 — 100 строк",valueText:l(3),differenceText:d(3)}],difference:i}}(h,b.preparedEntities),A=j.diagramCategoriesData,x=j.difference;return[{alias:"leaders",data:{title:"Больше всего коммитов",subtitle:u.name,emoji:"👑",users:l(h,"Commit")}},{alias:"vote",data:{title:"Самый 🔎 внимательный разработчик",subtitle:u.name,emoji:"🔎",users:l(h,"Comment")}},{alias:"chart",data:{title:"Коммиты",subtitle:u.name,values:g,users:l(h,"Commit")}},{alias:"diagram",data:{title:"Размер коммитов",subtitle:u.name,totalText:"".concat(h.Commit.length," коммита"),differenceText:"".concat(x>0?"+":"-").concat(Math.abs(x)," с прошлого спринта"),categories:A}},{alias:"activity",data:{title:"Коммиты, 1 неделя",subtitle:u.name,data:O}}]}}}},e={};!function r(n){var i=e[n];if(void 0!==i)return i.exports;var a=e[n]={exports:{}};return t[n](a,a.exports,r),a.exports}(497)})();
+const declOfNum = (n, titles) => {
+	return titles[(n % 10 === 1 && n % 100 !== 11) ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 1 : 2]
+}
+
+const sortByValueText = (a, b) => {
+	if (a.valueText === b.valueText) {
+		return a.name.localeCompare(b.name)
+	} else {
+		return b.valueText.localeCompare(a.valueText, "ru-u-kn-true")
+	}
+}
+
+/** 
+ * @function Получение обработанных данных и их фильтрация по номеру спринта
+ * @param entities - список всех данных
+ * @param currentSprintDuration - длительность спринта
+ */
+const getPreparedEntities = (entities, currentSprintDuration) => {
+	const [start, finish] = currentSprintDuration;
+	const preparedEntities = {
+		"Comment": [],
+		"Commit": [],
+		"Issue": [],
+		"Project": [],
+		"Sprint": [],
+		"Summary": [],
+		"User": []
+	}
+
+	const commitEntities = entities.filter(entity => entity.type === "Commit")
+
+	const filteredEntitiesBySprint = entities.filter((entity) => {
+		if (entity.type === "Issue" || entity.type === "Comment") {
+			return entity.createdAt >= start && entity.createdAt <= finish
+		}
+		if (entity.type === "Commit") {
+			return entity.timestamp >= start && entity.timestamp <= finish
+		}
+		return entity
+	})
+
+	for (const [key, value] of Object.entries(preparedEntities)) {
+		value.push(...filteredEntitiesBySprint.filter(entity => entity.type === key))
+	}
+
+	return { commitEntities, preparedEntities }
+}
+
+/** 
+ * @function Получение количества коммитов в каждом спринте
+ * @param commitEntities - список всех коммитов
+ * @param sprints - список спринтов
+ * @param sprintId - id текущего спринта
+ */
+
+const getValues = (commitEntities, sprints, sprintId) => {
+	const sprintsObject = sprints.reduce((acc, cur) => ({ ...acc, [cur.id]: [] }), {})
+	const sprintsTime = sprints.reduce((acc, cur) => ({ ...acc, [cur.id]: [cur.startAt, cur.finishAt] }), {});
+
+	for (const [key, value] of Object.entries(sprintsTime)) {
+		const commitsCount = commitEntities.filter(entity => entity.timestamp >= value[0] && entity.timestamp <= value[1])
+		sprintsObject[key].push(commitsCount)
+	}
+
+	const setActiveSprint = sprint => {
+		const sprintObj = {
+			title: sprint.id.toString(),
+			hint: sprint.name,
+			value: sprintsObject[sprint.id][0].length
+		}
+
+		if (sprint.id === sprintId) {
+			sprintObj.active = true
+		}
+
+		return sprintObj
+	}
+
+	return sprints.map(setActiveSprint).sort((a, b) => a.title.localeCompare(b.title, "ru-u-kn-true"))
+}
+
+/** 
+ * @function Получение данных "users" для alias "vote" и "leaders"
+ * @param preparedEntities - entities
+ * @param type - тип entity
+ */
+const getUsers = (preparedEntities, type) => {
+	const users = preparedEntities[type].reduce((acc, cur) => {
+		const usersObject = { ...acc, [cur.author]: [] };
+		return usersObject
+	}, {});
+
+	preparedEntities[type].forEach((entity) => {
+		const entityData = type === "Commit" ? entity.summaries : entity.likes;
+		if (Array.isArray(entityData) && entityData.length) {
+			users[entity.author].push(entityData);
+		}
+	})
+
+	return preparedEntities["User"].map(user => {
+		const word = declOfNum(users[user.id].flat().length, ["голос", "голоса", "голосов"])
+		const commitValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].length}` : "0";
+		const voteValueText = Array.isArray(users[user.id]) && users[user.id].length ? `${users[user.id].flat().length} ${word}` : "0 голосов"
+
+		return {
+			id: user.id,
+			name: user.name,
+			avatar: user.avatar,
+			valueText: type === "Commit" ? commitValueText : voteValueText
+		}
+	}).sort(sortByValueText)
+}
+
+/** 
+ * @function Получение размеров коммитов
+ * @param preparedEntities - entities
+ */
+const getSummariesWithSumValues = (preparedEntities) => {
+	const commitSummaries = preparedEntities["Commit"].map(({ summaries }) => summaries).flat();
+	const summaries = preparedEntities["Summary"].filter(({ id }) => commitSummaries.includes(id));
+	const sumValues = summaries.reduce((acc, { id, added, removed }) => ({ ...acc, [id]: { sum: added + removed } }), {})
+
+	const summariesWithSumValues = preparedEntities["Commit"].map(commit => ({
+		...commit,
+		summariesValue: commit.summaries.map(summary => ({ ...sumValues[summary] })).reduce((acc, { sum }) => acc + sum, 0)
+	}));
+
+	return summariesWithSumValues
+}
+
+/** 
+ * @function Получение количества коммитов по условиям   
+ * @param summaries - данные типа "Summaries"
+ */
+const getFilteredSummaries = (summaries) => {
+	const filterOne = summaries.filter(a => a.summariesValue >= 1001);
+	const filterTwo = summaries.filter(a => a.summariesValue >= 501 && a.summariesValue <= 1000);
+	const filterThree = summaries.filter(a => a.summariesValue >= 101 && a.summariesValue <= 500);
+	const filterFour = summaries.filter(a => a.summariesValue >= 1 && a.summariesValue <= 100);
+
+	return [
+		filterOne.length,
+		filterTwo.length,
+		filterThree.length,
+		filterFour.length
+	]
+}
+
+/** 
+ * @function Получение данных по активности команды
+ * @param commits - данные типа "Сommits"
+ */
+const getActivity = (commits) => {
+	const days = {
+		"sun": {},
+		"mon": {},
+		"tue": {},
+		"wed": {},
+		"thu": {},
+		"fri": {},
+		"sat": {}
+	}
+
+	const commitsWithDate = commits.map(commit => ({
+		...commit,
+		day: new Intl.DateTimeFormat("en-Us", { weekday: "short" }).format(new Date(commit.timestamp)).toLocaleLowerCase(),
+		hour: new Date(commit.timestamp).getHours()
+	}))
+
+
+	for (const [key, value] of Object.entries(days)) {
+		const filteredCommitsWithDate = commitsWithDate.filter(commit => commit.day === key).map(commit => commit.hour)
+		filteredCommitsWithDate.forEach((commitHour) => {
+			days[key][commitHour] = (days[key][commitHour] || 0) + 1
+		})
+		days[key] = new Array(24).fill(0).map((el, index) => value[index] ? el = value[index] : el)
+	}
+
+	return days
+}
+
+
+/** 
+ * @function Получение данных для диаграммы
+ * @param currentEntities - entities текущего спринта
+ * @param prevEntities - entities предыдущего спринта
+ */
+
+const getDiagramCategoriesData = (currentEntities, prevEntities) => {
+	const currentSummaries = getSummariesWithSumValues(currentEntities)
+	const prevSummaries = getSummariesWithSumValues(prevEntities);
+
+	const difference = currentSummaries.length - prevSummaries.length;
+
+	const currentCategories = getFilteredSummaries(currentSummaries);
+	const prevCategories = getFilteredSummaries(prevSummaries);
+
+	const getDifference = (index) => currentCategories[index] - prevCategories[index];
+	const getCommitsWord = (value) => declOfNum(value, ['коммит', "коммита", "коммитов"]);
+
+	const getCategoryValueText = (index) => `${currentCategories[index]} ${getCommitsWord(currentCategories[index])}`;
+	const getCategoryDiffText = (index) => `${getDifference(index) > 0 ? "+" : ""}${getDifference(index)} ${getCommitsWord(Math.abs(currentCategories[index]))}`
+
+	const diagramCategoriesData = [
+		{ title: "> 1001 строки", valueText: getCategoryValueText(0), differenceText: getCategoryDiffText(0) },
+		{ title: "501 — 1000 строк", valueText: getCategoryValueText(1), differenceText: getCategoryDiffText(1) },
+		{ title: "101 — 500 строк", valueText: getCategoryValueText(2), differenceText: getCategoryDiffText(2) },
+		{ title: "1 — 100 строк", valueText: getCategoryValueText(3), differenceText: getCategoryDiffText(3) }
+	]
+
+	return { diagramCategoriesData, difference }
+
+}
+
+function prepareData(entities, { sprintId }) {
+	const currentSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId);
+	const previousSprint = entities.filter(entity => entity.type === "Sprint").find(sprint => sprint.id === sprintId - 1);
+	let currentSprintDuration = [currentSprint.startAt, currentSprint.finishAt];
+	let previousSprintDuration = [previousSprint.startAt, previousSprint.finishAt];
+
+	const { commitEntities, preparedEntities } = getPreparedEntities(entities, currentSprintDuration);
+	const prevPreparedEntities = getPreparedEntities(entities, previousSprintDuration);
+
+	const values = getValues(commitEntities, preparedEntities["Sprint"], sprintId);
+	const activity = getActivity(preparedEntities["Commit"]);
+	const { diagramCategoriesData, difference } = getDiagramCategoriesData(preparedEntities, prevPreparedEntities.preparedEntities)
+
+	return [
+		{
+			alias: "leaders",
+			data: {
+				title: "Больше всего коммитов",
+				subtitle: currentSprint.name,
+				emoji: "👑",
+				users: getUsers(preparedEntities, "Commit")
+			}
+		},
+		{
+			alias: "vote",
+			data: {
+				title: "Самый 🔎 внимательный разработчик",
+				subtitle: currentSprint.name,
+				emoji: "🔎",
+				users: getUsers(preparedEntities, "Comment")
+			}
+		},
+		{
+			alias: "chart",
+			data: {
+				title: "Коммиты",
+				subtitle: currentSprint.name,
+				values,
+				users: getUsers(preparedEntities, "Commit")
+			}
+		},
+		{
+			alias: "diagram",
+			data: {
+				title: "Размер коммитов",
+				subtitle: currentSprint.name,
+				totalText: `${preparedEntities["Commit"].length} коммита`,
+				differenceText: `${difference > 0 ? "+" : "-"}${Math.abs(difference)} с прошлого спринта`,
+				categories: diagramCategoriesData
+			}
+		},
+		{
+			alias: "activity",
+			data: {
+				title: "Коммиты, 1 неделя",
+				subtitle: currentSprint.name,
+				data: activity
+			}
+		}
+	]
+}
+
+module.exports = { prepareData }
